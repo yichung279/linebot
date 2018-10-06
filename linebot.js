@@ -25,25 +25,22 @@ https.createServer(options, app).listen(config.port,()=>{
 const client = new line.Client(channel)
 
 
-app.post('/webhook', line.middleware(config), (req, res) => {
-  Promise.all(req.body.events.map(handleEvent))
-  .then((result) => {
-    res.json(result)
-  }).catch((err) => {
+app.post('/webhook', line.middleware(config), async (req, res) => {
+  try{
+    result = await Promise.all(req.body.events.map(handleEvent))
+  }catch(e){
     res.status(500).end()
-  })
+  }
+  res.status(200).end()
 })
 
-function handleEvent(event) {
+async function handleEvent(event) {
   if(event.type =='follow'){
-      console.log(event)
-      return Promise.reject()
+      return Promise.resolve()
   }else if (event.type === 'message' && event.message.type === 'text') {
     const echo = { type: 'text', text: event.message.text }
-    console.log(event.source.userId)
-    console.log(echo)
     return Promise.resolve(
-      console.log(client.replyMessage(event.replyToken, echo))
+      client.replyMessage(event.replyToken, echo)
     )
   }
   
@@ -51,160 +48,12 @@ function handleEvent(event) {
 
 const push = { type: 'text', text: 'hi hi' }
 client.pushMessage(config.testId, push)
-const flexContent =
-  {
-    "type": "bubble",
-    "hero": {
-      "type": "image",
-      "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
-      "size": "full",
-      "aspectRatio": "20:13",
-      "aspectMode": "cover",
-      "action": {
-        "type": "uri",
-        "uri": "http://linecorp.com/"
-      }
-    },
-    "body": {
-      "type": "box",
-      "layout": "vertical",
-      "contents": [
-        {
-          "type": "text",
-          "text": "Brown Cafe",
-          "weight": "bold",
-          "size": "xl"
-        },
-        {
-          "type": "box",
-          "layout": "baseline",
-          "margin": "md",
-          "contents": [
-            {
-              "type": "icon",
-              "size": "sm",
-              "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-            },
-            {
-              "type": "icon",
-              "size": "sm",
-              "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-            },
-            {
-              "type": "icon",
-              "size": "sm",
-              "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-            },
-            {
-              "type": "icon",
-              "size": "sm",
-              "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-            },
-            {
-              "type": "icon",
-              "size": "sm",
-              "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png"
-            },
-            {
-              "type": "text",
-              "text": "4.0",
-              "size": "sm",
-              "color": "#999999",
-              "margin": "md",
-              "flex": 0
-            }
-          ]
-        },
-        {
-          "type": "box",
-          "layout": "vertical",
-          "margin": "lg",
-          "spacing": "sm",
-          "contents": [
-            {
-              "type": "box",
-              "layout": "baseline",
-              "spacing": "sm",
-              "contents": [
-                {
-                  "type": "text",
-                  "text": "Place",
-                  "color": "#aaaaaa",
-                  "size": "sm",
-                  "flex": 1
-                },
-                {
-                  "type": "text",
-                  "text": "Miraina Tower, 4-1-6 Shinjuku, Tokyo",
-                  "wrap": true,
-                  "color": "#666666",
-                  "size": "sm",
-                  "flex": 5
-                }
-              ]
-            },
-            {
-              "type": "box",
-              "layout": "baseline",
-              "spacing": "sm",
-              "contents": [
-                {
-                  "type": "text",
-                  "text": "Time",
-                  "color": "#aaaaaa",
-                  "size": "sm",
-                  "flex": 1
-                },
-                {
-                  "type": "text",
-                  "text": "10:00 - 23:00",
-                  "wrap": true,
-                  "color": "#666666",
-                  "size": "sm",
-                  "flex": 5
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "footer": {
-      "type": "box",
-      "layout": "vertical",
-      "spacing": "sm",
-      "contents": [
-        {
-          "type": "button",
-          "style": "link",
-          "height": "sm",
-          "action": {
-            "type": "uri",
-            "label": "CALL",
-            "uri": "https://linecorp.com"
-          }
-        },
-        {
-          "type": "button",
-          "style": "link",
-          "height": "sm",
-          "action": {
-            "type": "uri",
-            "label": "WEBSITE",
-            "uri": "https://linecorp.com"
-          }
-        },
-        {
-          "type": "spacer",
-          "size": "sm"
-        }
-      ],
-      "flex": 0
-    }
-  }
+/*
+const flexContent = {} to customize flex message ,use line official tool: https://developers.line.me/console/fx/
 const flex = {
     "type": "flex",
     "altText": "this is a flex message",
     "contents": flexContent
 }
-//client.pushMessage(config.testId, flex)
+client.pushMessage(config.testId, flex)
+*/
