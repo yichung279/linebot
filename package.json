@@ -1,0 +1,13 @@
+{
+  "name": "linebot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:yichung279/linebot.git",
+  "author": "yichung <ql3895619@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^6.2.1",
+    "https": "^1.0.0",
+    "linebot": "^1.4.1"
+  }
+}
