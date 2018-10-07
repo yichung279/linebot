@@ -7,7 +7,9 @@
   "license": "MIT",
   "dependencies": {
     "@line/bot-sdk": "^6.2.1",
+    "date-and-time": "^0.6.2",
     "https": "^1.0.0",
-    "linebot": "^1.4.1"
+    "linebot": "^1.4.1",
+    "sqlite3": "^4.0.2"
   }
 }
