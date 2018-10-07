@@ -24,10 +24,10 @@ app.use(linebot.middleware)
 app.post('/webhook', async (req, res) => {
   try{
     result = await Promise.all(req.body.events.map(linebot.handleEvent))
+    res.status(200).end()
   }catch(e){
     res.status(500).end()
   }
-  res.status(200).end()
 })
 
 const pushmsg = { type: 'text', text: 'this is a push message' }
@@ -42,16 +42,16 @@ const fetchImage = (time, verbose=false) => new Promise((resolve, reject) => {
 
   if (fs.existsSync(path)) {
     if (verbose) console.log(`${fname} exists, skip fetching`)
-    return resolve()
+    resolve()
   }
 
   https.get(url, (response) => {
     if (200 != response.statusCode) {
       if (verbose) console.log(`fetch ${fname} failed`)
-      return reject()
+      reject()
     }
     response.pipe(fs.createWriteStream(path).on('close', () => {
-      return resolve()
+      resolve()
     }))
   })
 })

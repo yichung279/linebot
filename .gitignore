@@ -2,3 +2,4 @@ config.json
 ssl/
 node_modules/
 raddarImg/
+*.db3
