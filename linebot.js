@@ -84,6 +84,15 @@ const self = module.exports = {
       if (err) reject(err)
       else resolve()
     })
-  })
-
+  }),
+  
+  getAllId: () => new Promise((resolve, reject) => {
+    db.all("SELECT id FROM id_list ",(err, rows) => {
+      // rows = [{id:'aaa'},
+      //         {id:'bbb'},
+      //         {id:'ccc'}]
+      if (err) reject(err)
+      else resolve(rows)
+    })
+  }),
 }
