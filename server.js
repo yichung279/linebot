@@ -30,9 +30,6 @@ app.post('/webhook', async (req, res) => {
   }
 })
 
-const pushmsg = { type: 'text', text: 'this is a push message' }
-//linebot.push(config.testId, pushmsg)
-
 const timeString = (time, minutes=0) => dateAndTime.format(dateAndTime.addMinutes(time, minutes), 'YYYYMMDDHHmm')
 
 const fetchImage = (time, verbose=false) => new Promise((resolve, reject) => { 
@@ -68,7 +65,7 @@ const fetchService = async (time) => {
     let now = new Date()
     if (dateAndTime.subtract(now, time).toMinutes() > 30) {
       let alert = { type: 'text', text: '<alert> FetchService failed. <alert>' }
-      linebot.push(config.testId, alert)
+      linebot.push(config.devId, alert)
       return
     }
     console.log(`${timeString(time)} failed, retry in ${config.cwb.failTimeout / 60000} minute`)
@@ -80,3 +77,6 @@ const fetchService = async (time) => {
 let time = new Date()
 time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 10)
 fetchService(time)
+
+const pushmsg = { type: 'text', text: 'this is a push message' }
+linebot.pushAll(pushmsg)

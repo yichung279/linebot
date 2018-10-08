@@ -95,4 +95,10 @@ const self = module.exports = {
       else resolve(rows)
     })
   }),
+
+  pushAll: (msg) => new Promise(async(resolve, reject)=>{
+    let users = await self.getAllId()
+    await Promise.all(users.map(user => self.push(user.id, msg)))
+    resolve()
+  })
 }
