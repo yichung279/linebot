@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+import sys
+from datetime import datetime, timedelta
 import numpy as np
 import colorsys
 from PIL import Image
@@ -36,18 +39,24 @@ def write_image(filename, img_cls):
 def predict(input_imgs, output_name):
     model = load_model('convLSTM_external.h5')
     
-    output_dir = './' 
+    output_dir = 'output/' 
     file_name = output_dir + output_name
-    
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
 
     imgs_pred = model.predict(input_imgs)
     imgs_pred = np.argmax(imgs_pred, axis = 3)
     
     
-    write_image('%s.png' % output_name, imgs_pred[0])
+    write_image(file_name, imgs_pred[0])
+    
+    prob = 0
+    for i in range(32, 40):
+        for j in range(32, 40):
+            prob += imgs_pred[0][i][j]
 
+    if prob > 64 :
+        print("raining")
+    else :
+        print("safe")
 def vote(i, j, img):
     color = {'white': 0, 'blue': 0, 'green': 0, 'yellow': 0, 'red': 0, 'purple': 0}
 
@@ -92,13 +101,9 @@ def compensate(img):
                 img[i][j] = vote(i, j, img)
     return img
 
-def preprocess ():
-    imglist = glob("raddarImg/*.png")
-    imglist.sort()
-    imglist.reverse()
-    
+def preprocess (imglist):
     imgs = []
-    for img_name in imglist[-3:]:
+    for img_name in imglist:
         with Image.open(img_name) as f:
             img_crop = np.array(f.crop((1639-4, 1439-4, 1711+4, 1511+4)), dtype = np.uint8)
             img_crop = compensate(img_crop)
@@ -108,7 +113,37 @@ def preprocess ():
 
     return np.array(imgs)
 
+def get_imglist():
+    # imglist = glob("radarImg/*.png")
+    imglist = glob("radar_images/*.png")
+    imglist.sort()
+    imglist = imglist[-3:]
+     
+    if  is_complete(imglist):
+        return imglist
+
+    return None
+
+def is_complete(imglist):
+    delta = timedelta(seconds = 600)
+    
+    for i in range(2):
+        if datetime.strptime(imglist[i+1][18+4:30+4], "%Y%m%d%H%M") - datetime.strptime(imglist[i][18+4:30+4], "%Y%m%d%H%M")!= delta:
+            return False
+
+    return True
+
 if __name__ == '__main__':
-    # TODO: check file_list compelete
-    imgs = preprocess()
-    predict(imgs, "test")
+    imglist = get_imglist() 
+    
+    if imglist is None:
+        print("no complete iamge list")
+        print("nofile")
+        sys.exit()
+    
+    imgs = preprocess(imglist)
+    filetime = datetime.strptime(imglist[2][18+4:30+4], "%Y%m%d%H%M") + timedelta(seconds = 20 * 60)
+    filename = "predict_%s.png" % filetime.strftime("%Y%m%d%H%M")
+    
+    predict(imgs, filename)
+    print("%s" % filename)

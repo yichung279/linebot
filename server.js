@@ -1,4 +1,5 @@
 const fs = require('fs')
+const { execFileSync } = require('child_process')
 const https = require('https')
 const express = require('express')
 const config = require('./config')
@@ -34,7 +35,7 @@ const timeString = (time, minutes=0) => dateAndTime.format(dateAndTime.addMinute
 
 const fetchImage = (time, verbose=false) => new Promise((resolve, reject) => { 
   const fname = `CV1_3600_${timeString(time)}.png`
-  const path = `raddarImg/${fname}`
+  const path = `radarImg/${fname}`
   const url = `https://www.cwb.gov.tw/V7/observe/radar/Data/HD_Radar/${fname}`
 
   if (fs.existsSync(path)) {
@@ -56,7 +57,7 @@ const fetchImage = (time, verbose=false) => new Promise((resolve, reject) => {
 const fetchService = async (time) => {
   try {
     await fetchImage(time)
-    // analyze(time)
+    analyze(time)
     console.log(`${timeString(time)} succeed, next fetch in ${config.cwb.successTimeout / 60000} minute`)
     await setTimeoutPromise(config.cwb.successTimeout)
     time = dateAndTime.addMinutes(time, 10)
@@ -74,9 +75,18 @@ const fetchService = async (time) => {
   }
 }
 
+const analyze = () => {
+  result = execFileSync("./predict.py").toString().split("\n")
+  status = result[0]
+  filename = result[1]
+  console.log({status, filename})
+  if (status === "raining"){
+    const pushmsg = { type: 'text', text: filename}
+    linebot.pushAll(pushmsg)
+  }
+}
+
 let time = new Date()
 time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 10)
+time = dateAndTime.addMinutes(time, -20)
 fetchService(time)
-
-const pushmsg = { type: 'text', text: 'this is a push message' }
-linebot.pushAll(pushmsg)

@@ -1,6 +1,6 @@
 config.json
 ssl/
 node_modules/
-raddarImg/
+radar*
 *.db3
 .env/
