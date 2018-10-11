@@ -4,3 +4,4 @@ node_modules/
 radar*
 *.db3
 .env/
+output/*

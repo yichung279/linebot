@@ -104,18 +104,24 @@ def compensate(img):
 def preprocess (imglist):
     imgs = []
     for img_name in imglist:
-        with Image.open(img_name) as f:
+        try :
+            f = Image.open(img_name)
             img_crop = np.array(f.crop((1639-4, 1439-4, 1711+4, 1511+4)), dtype = np.uint8)
             img_crop = compensate(img_crop)
             imgs.append(img_crop)
+        except :
+            os.remove(img_name)
+            print("open image failed")
+            print("nofile") 
+            sys.exit()
     
     imgs = [imgs]
 
     return np.array(imgs)
 
 def get_imglist():
-    # imglist = glob("radarImg/*.png")
-    imglist = glob("radar_images/*.png")
+    imglist = glob("radarImg/*.png")
+    # imglist = glob("radar_images/*.png")
     imglist.sort()
     imglist = imglist[-3:]
      
@@ -128,7 +134,7 @@ def is_complete(imglist):
     delta = timedelta(seconds = 600)
     
     for i in range(2):
-        if datetime.strptime(imglist[i+1][18+4:30+4], "%Y%m%d%H%M") - datetime.strptime(imglist[i][18+4:30+4], "%Y%m%d%H%M")!= delta:
+        if datetime.strptime(imglist[i+1][18:30], "%Y%m%d%H%M") - datetime.strptime(imglist[i][18:30], "%Y%m%d%H%M")!= delta:
             return False
 
     return True
@@ -142,7 +148,7 @@ if __name__ == '__main__':
         sys.exit()
     
     imgs = preprocess(imglist)
-    filetime = datetime.strptime(imglist[2][18+4:30+4], "%Y%m%d%H%M") + timedelta(seconds = 20 * 60)
+    filetime = datetime.strptime(imglist[2][18:30], "%Y%m%d%H%M") + timedelta(seconds = 20 * 60)
     filename = "predict_%s.png" % filetime.strftime("%Y%m%d%H%M")
     
     predict(imgs, filename)

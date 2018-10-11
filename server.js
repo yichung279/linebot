@@ -44,38 +44,46 @@ const fetchImage = (time, verbose=false) => new Promise((resolve, reject) => {
   }
 
   https.get(url, (response) => {
-    if (200 != response.statusCode) {
+    if (response.statusCode === 200) {
+      response.pipe(fs.createWriteStream(path).on('close', () => {
+        resolve()
+      }))
+    }else{
       if (verbose) console.log(`fetch ${fname} failed`)
       reject()
     }
-    response.pipe(fs.createWriteStream(path).on('close', () => {
-      resolve()
-    }))
   })
 })
 
+let execount = 0
+
 const fetchService = async (time) => {
-  try {
-    await fetchImage(time)
-    analyze(time)
-    console.log(`${timeString(time)} succeed, next fetch in ${config.cwb.successTimeout / 60000} minute`)
-    await setTimeoutPromise(config.cwb.successTimeout)
-    time = dateAndTime.addMinutes(time, 10)
-    fetchService(time)
-  } catch(e) {
-    let now = new Date()
-    if (dateAndTime.subtract(now, time).toMinutes() > 30) {
-      let alert = { type: 'text', text: '<alert> FetchService failed. <alert>' }
-      linebot.push(config.devId, alert)
-      return
-    }
-    console.log(`${timeString(time)} failed, retry in ${config.cwb.failTimeout / 60000} minute`)
+  if (execount >= 5){
+    execount = 0
+    let alert = { type: 'text', text: `<alert> CV1_3600_${timeString(time)}.png FetchService failed. <alert>` }
+    linebot.push(config.devId, alert)
     await setTimeoutPromise(config.cwb.failTimeout)
-    fetchService(time)
+    newtime = dateAndTime.addMinutes(time, 10)
+    fetchService(newtime)
+  }else{
+    execount = execount + 1
+    try {
+      await fetchImage(time)
+      // console.log(`${timeString(time)} succeed, next fetch in ${config.cwb.successTimeout / 60000} minute`)
+      analyze(time)
+      await setTimeoutPromise(config.cwb.successTimeout)
+      newtime = dateAndTime.addMinutes(time, 10)
+      fetchService(newtime)
+      execount = 0
+    } catch(e) {
+      console.log(`${execount} CV1_3600_${timeString(time)}.png failed, retry in ${config.cwb.failTimeout / 60000} minute`)
+      await setTimeoutPromise(config.cwb.failTimeout)
+      fetchService(time)
+    }
   }
 }
 
-const analyze = () => {
+const analyze = () => new Promise(async(resolve, reject) => {
   result = execFileSync("./predict.py").toString().split("\n")
   status = result[0]
   filename = result[1]
@@ -84,9 +92,9 @@ const analyze = () => {
     const pushmsg = { type: 'text', text: filename}
     linebot.pushAll(pushmsg)
   }
-}
+})
 
 let time = new Date()
 time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 10)
-time = dateAndTime.addMinutes(time, -20)
+time = dateAndTime.addMinutes(time, -10)
 fetchService(time)
