@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import sys
+stderr = sys.stderr
+sys.stderr = open('/dev/null', 'w')
 from datetime import datetime, timedelta
 import numpy as np
 import colorsys
@@ -9,6 +11,7 @@ from glob import glob
 import cv2
 import os
 from keras import backend as K 
+sys.stderr = stderr
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 #BGR
