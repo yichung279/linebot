@@ -5,3 +5,4 @@ radar*
 *.db3
 .env/
 output/*
+Deeprecipitation/*

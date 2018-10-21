@@ -62,7 +62,8 @@ const fetchService = async (time) => {
     execount = 0
     let alert = { type: 'text', text: `<alert> CV1_3600_${timeString(time)}.png FetchService failed. <alert>` }
     linebot.push(config.devId, alert)
-    await setTimeoutPromise(config.cwb.failTimeout)
+    console.log(`${execount} CV1_3600_${timeString(time)}.png failed, retry in ${config.cwb.successTimeout / 60000} minute`)
+    await setTimeoutPromise(config.cwb.successTimeout)
     newtime = dateAndTime.addMinutes(time, 10)
     fetchService(newtime)
   }else{
@@ -76,23 +77,44 @@ const fetchService = async (time) => {
       fetchService(newtime)
       execount = 0
     } catch(e) {
-      console.log(`${execount} CV1_3600_${timeString(time)}.png failed, retry in ${config.cwb.failTimeout / 60000} minute`)
+      //console.log(`${execount} CV1_3600_${timeString(time)}.png failed, retry in ${config.cwb.failTimeout / 60000} minute`)
       await setTimeoutPromise(config.cwb.failTimeout)
       fetchService(time)
     }
   }
 }
 
-const analyze = () => new Promise(async(resolve, reject) => {
-  result = execFileSync("./predict.py").toString().split("\n")
-  status = result[0]
-  filename = result[1]
-  console.log({status, filename})
+const analyze = (test="") => new Promise(async(resolve, reject) => {
+  const result = execFileSync("./predict.py", [test]).toString().split("\n")
+  const status = result[0]
+  const filename = result[1]
   if (status === "raining"){
-    const pushmsg = { type: 'text', text: filename}
+    let pushmsg = {
+      "type": "imagemap",
+      "baseUrl": `https://merry.ee.ncku.edu.tw/~yichung/Deeprecipitation/${filename}`, 
+      "altText": "要下雨了，點擊前往氣象局網站",
+      "baseSize": {
+            "height": 1040,
+            "width": 1040
+        },
+      "actions": [
+        {
+          "type": "uri",
+          "linkUri": "https://www.cwb.gov.tw/V7/observe/radar/index2.htm", 
+          "area": {
+            "x": 0,
+            "y": 0,
+            "width": 1040,
+            "height": 1040
+          }
+        }
+      ]
+    } 
     linebot.pushAll(pushmsg)
   }
 })
+
+//  analyze(test="testtrue")
 
 let time = new Date()
 time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 10)

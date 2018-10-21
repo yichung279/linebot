@@ -3,13 +3,13 @@ import sys
 from datetime import datetime, timedelta
 import numpy as np
 import colorsys
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from keras.models import load_model
 from glob import glob
 import cv2
 import os
 from keras import backend as K 
-K.clear_session()
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 #BGR
 label2pixel = [
@@ -34,6 +34,7 @@ def write_image(filename, img_cls):
             image[i][j][2] = label2pixel[img_cls[i][j]][2]
 
     cv2.imwrite(filename, image)
+    return image
 
 # using convLSTM_external
 def predict(input_imgs, output_name):
@@ -42,21 +43,25 @@ def predict(input_imgs, output_name):
     output_dir = 'output/' 
     file_name = output_dir + output_name
 
-    imgs_pred = model.predict(input_imgs)
-    imgs_pred = np.argmax(imgs_pred, axis = 3)
+    imgs_cls = model.predict(input_imgs)
+    imgs_cls = np.argmax(imgs_cls, axis = 3)
     
     
-    write_image(file_name, imgs_pred[0])
+    img_pred = write_image(file_name, imgs_cls[0])
     
     prob = 0
     for i in range(32, 40):
         for j in range(32, 40):
-            prob += imgs_pred[0][i][j]
+            prob += imgs_cls[0][i][j]
 
-    if prob > 64 :
+    K.clear_session()
+    if prob > 30 :
         print("raining")
+        return True, img_pred
     else :
         print("safe")
+        return False, img_pred
+
 def vote(i, j, img):
     color = {'white': 0, 'blue': 0, 'green': 0, 'yellow': 0, 'red': 0, 'purple': 0}
 
@@ -121,7 +126,8 @@ def preprocess (imglist):
 
 def get_imglist():
     imglist = glob("radarImg/*.png")
-    # imglist = glob("radar_images/*.png")
+    if sys.argv[1] == "testtrue" :
+        imglist = glob("testtest/*.png")
     imglist.sort()
     imglist = imglist[-3:]
      
@@ -139,6 +145,62 @@ def is_complete(imglist):
 
     return True
 
+def draw_text_center(draw, text, fontsize, height):
+    font = ImageFont.truetype("NotoSansTC-Regular.otf", fontsize)
+    w, h = draw.textsize(text, font=font)
+    draw.text( ((1040-w)//2, height), text, font=font)
+    return draw
+
+def save_all_size(img, path, filename):
+    img.save(path + filename + "1040", "png")
+    
+    size = 700
+    img = img.resize((size, size * 900 // 1040), Image.LANCZOS)
+    img.save(path + filename + "%d" % size, "png")
+    
+    size = 460
+    img = img.resize((size, size * 900 // 1040), Image.LANCZOS)
+    img.save(path + filename + "%d" % size, "png")
+    
+    size = 300
+    img = img.resize((size, size * 900 // 1040), Image.LANCZOS)
+    img.save(path + filename + "%d" % size, "png")
+    
+    size = 240
+    img = img.resize((size, size * 900 // 1040), Image.LANCZOS)
+    img.save(path + filename + "%d" % size, "png")
+
+def draw(predict, filetime, base_filename):
+    predict = predict.astype(np.uint8)
+    predict = cv2.cvtColor(predict, cv2.COLOR_BGR2RGB)
+    base = np.array(Image.open(base_filename))
+    for i in range(1439, 1439+72):
+        for j in range(1639, 1639+72):
+            if base[i][j][0] != base[i][j][1] or base[i][j][1] != base[i][j][2]:
+                if not all(pix == 0 for pix in predict[i-1439][j-1639]):
+                    base[i][j] = predict[i-1439][j-1639]
+            elif all(pix > 200 for pix in base[i][j]) :
+                if not all(pix == 0 for pix in predict[i-1439][j-1639]):
+                    base[i][j] = predict[i-1439][j-1639]
+
+    base = Image.fromarray(base)
+    base = base.crop((1250,1250, 2290, 1770))
+    
+    background = Image.new("RGB", (1040, 900), color = (83, 120, 158))
+    backgroung = background.paste(base, (0,250))
+    
+    draw = ImageDraw.Draw(background)
+    draw = draw_text_center(draw, "%s預測雲圖" % filetime.strftime("%m/%d %H:%M"), 50, 50)
+    draw = draw_text_center(draw, "提醒您，台南市區即將降雨，請做好準備", 30, 150)
+    draw = draw_text_center(draw, "點擊前往氣象局網站", 30, 800)
+                  
+    filename = "notification_%s/" % filetime.strftime("%m%d%H%M")
+    path = "Deeprecipitation/"
+    if not os.path.isdir(path+filename):
+        os.mkdir(path + filename)
+    save_all_size(background, path, filename) 
+    print(filename)
+
 if __name__ == '__main__':
     imglist = get_imglist() 
     
@@ -151,5 +213,5 @@ if __name__ == '__main__':
     filetime = datetime.strptime(imglist[2][18:30], "%Y%m%d%H%M") + timedelta(seconds = 20 * 60)
     filename = "predict_%s.png" % filetime.strftime("%Y%m%d%H%M")
     
-    predict(imgs, filename)
-    print("%s" % filename)
+    rainy, img = predict(imgs, filename)
+    if rainy : draw(img, filetime,imglist[-1])
