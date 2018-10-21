@@ -55,7 +55,7 @@ def predict(input_imgs, output_name):
             prob += imgs_cls[0][i][j]
 
     K.clear_session()
-    if prob > 30 :
+    if prob > 80 :
         print("raining")
         return True, img_pred
     else :
