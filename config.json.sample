@@ -1,6 +1,10 @@
 {
-  "port":  <port>,
-  "channelSecret":      <channelSecret>,
-  "channelAccessToken": <channelAcceToken> ,
-  "devId":             <developerId>
+  "cwb": {
+    "failTimeout":    60000,
+    "successTimeout": 540000
+  },
+  "port":               <your port>,
+  "channelSecret":      <your key>,
+  "channelAccessToken": <your key>, 
+  "devId":              <your userId>
 } 
