@@ -10,10 +10,11 @@ const setTimeoutPromise = util.promisify(setTimeout)
 const linebot = require('./linebot')
 const app = express()
 
+const {ca, key, cert} = config.ssl
 const options = {
-  ca : fs.readFileSync('./ssl/ca_bundle.crt'),
-  key: fs.readFileSync('./ssl/private.key'),
-  cert: fs.readFileSync('./ssl/certificate.crt')
+  ca : fs.readFileSync(ca),
+  key: fs.readFileSync(key),
+  cert: fs.readFileSync(cert)
 }
 
 https.createServer(options, app).listen(config.port,

@@ -1,4 +1,9 @@
 {
+  "ssl":{
+    "ca"  : <your ca>,
+    "key" : <your key>,
+    "cert": <your cert>
+  },
   "cwb": {
     "failTimeout":    60000,
     "successTimeout": 540000
