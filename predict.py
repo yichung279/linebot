@@ -43,7 +43,10 @@ def write_image(filename, img_cls):
 def predict(input_imgs, output_name):
     model = load_model('convLSTM_external.h5')
     
-    output_dir = 'output/' 
+    output_dir = 'predictImg/' 
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+
     file_name = output_dir + output_name
 
     imgs_cls = model.predict(input_imgs)
@@ -198,7 +201,9 @@ def draw(predict, filetime, base_filename):
     draw = draw_text_center(draw, "點擊前往氣象局網站", 30, 800)
                   
     filename = "notification_%s/" % filetime.strftime("%m%d%H%M")
-    path = "Deeprecipitation/"
+    path = "notification/"
+    if not os.path.isdir(path):
+        os.mkdir(path)
     if not os.path.isdir(path+filename):
         os.mkdir(path + filename)
     save_all_size(background, path, filename) 
@@ -217,4 +222,5 @@ if __name__ == '__main__':
     filename = "predict_%s.png" % filetime.strftime("%Y%m%d%H%M")
     
     rainy, img = predict(imgs, filename)
-    if rainy : draw(img, filetime,imglist[-1])
+    if rainy : 
+        draw(img, filetime,imglist[-1])

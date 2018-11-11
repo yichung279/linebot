@@ -114,9 +114,11 @@ const analyze = (test="") => new Promise(async(resolve, reject) => {
   }
 })
 
-//  analyze(test="testtrue")
 
 let time = new Date()
 time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 10)
 time = dateAndTime.addMinutes(time, -10)
+
+fs.mkdir("radarImg", err=>{})
+// analyze(test="testtrue")
 fetchService(time)

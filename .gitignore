@@ -1,8 +1,8 @@
 config.json
 ssl/
 node_modules/
-radar*
 *.db3
 .env/
-output/*
-Deeprecipitation/*
+notification/*
+radarImg/*
+predictImg/*
