@@ -130,7 +130,7 @@ def preprocess (imglist):
 def get_imglist():
     imglist = glob("radarImg/*.png")
     if sys.argv[1] == "testtrue" :
-        imglist = glob("testtest/*.png")
+        imglist = glob("testtrue/*.png")
     imglist.sort()
     imglist = imglist[-3:]
      
