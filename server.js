@@ -121,5 +121,7 @@ time = dateAndTime.addMinutes(time, -parseInt(dateAndTime.format(time, 'mm')) % 
 time = dateAndTime.addMinutes(time, -10)
 
 fs.mkdir("radarImg", err=>{})
-// analyze(test="testtrue")
+process.argv.forEach((val) => {
+  if (val=='testtrue')analyze(test="testtrue")
+})
 fetchService(time)
