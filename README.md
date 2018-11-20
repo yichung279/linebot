@@ -12,4 +12,4 @@ Rain-forcast is a messenger chatbot tells you when to rain.
 4. `$ node server.js`
 
 ## Test 
-Function in `server.js`:`analyze(tets=testyrue)` will send you a notification telling you it's going to rain.
+Function in `server.js`:`analyze(tets=testtrue)` will send you a notification telling you it's going to rain.
