@@ -92,7 +92,7 @@ const analyze = (test="") => new Promise(async(resolve, reject) => {
   if (status === "raining"){
     let pushmsg = {
       "type": "imagemap",
-      "baseUrl": `https://merry.ee.ncku.edu.tw/~yichung/Deeprecipitation/${filename}`, 
+      "baseUrl": `${config.host}/notification/${filename}`, 
       "altText": "要下雨了，點擊前往氣象局網站",
       "baseSize": {
             "height": 1040,

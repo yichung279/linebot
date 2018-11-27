@@ -9,6 +9,7 @@
     "successTimeout": 540000
   },
   "port":               <your port>,
+  "host":               <your host>,  
   "channelSecret":      <your key>,
   "channelAccessToken": <your key>, 
   "devId":              <your userId>
